@@ -20,8 +20,14 @@ jobs:
         echo See https://aka.ms/yaml
         echo add more tasks
       displayName: 'Run a multi-line script'
- - job: job2   
+ - job: job2
+   dependsOn: job1  
    steps:
-     - script: echo job2
-       displayName: 'Run a one line script'
+      - script: echo job2
+        displayName: 'Run a one line script'
+ - job: job3
+   dependsOn: job2
+   steps:
+     - script: echo job3
+       displayName: 'Run a one-line script'    
 
