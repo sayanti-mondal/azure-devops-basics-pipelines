@@ -2,20 +2,41 @@
 trigger:
 - main
 
-strategy:
-  matrix:
-    linux:
-      operatingSystem: 'ubuntu-latest'
-    mac:
-      operatingSystem: 'macos-latest'
+# strategy:
+#   matrix:
+#     linux:
+#       operatingSystem: 'ubuntu-latest'
+#     mac:
+#       operatingSystem: 'macos-latest'
+# pool:
+#   vmImage: $(operatingSystem)
+
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
+  
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    steps:
+      - bash: echo "Do the Build"
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- stage: DevDeploy
+  jobs:
+    - deployment: DevDeployJob
+      environment: Dev
+      strategy:
+        runOnce:
+          deploy:
+           steps:
+             - script: echo deploy to $(environment) 
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- stage: QADeploy
+  jobs:
+    - deployment: QADeployJob
+      environment: QA
+      strategy:
+        runOnce:
+          deploy:
+           steps:
+             - script: echo deploy to $(environment) 
