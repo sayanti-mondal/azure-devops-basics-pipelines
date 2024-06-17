@@ -12,14 +12,26 @@ trigger: # when do u want to run the pipeline
 pool: # the agent running the CI/CD pipeline. where do u want to run the pipeline
   vmImage: ubuntu-latest
 
-steps: # task (steps or tasks are bottom most level in the hierarchy of the things you can do in a Azure Pipeline.)
+steps:
 - script: echo Hello, world, changed!
   displayName: 'Run a one-line script'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    - script: |
+        echo Add other tasks to build, test, and deploy your project.
+        echo See https://aka.ms/yaml
+        echo add more tasks
+      displayName: 'Run a multi-line script'
+ - job: job2
+   dependsOn: job1  
+   steps:
+      - script: echo job2
+        displayName: 'Run a one line script'
+ - job: job3
+   dependsOn: job2
+   steps:
+     - script: echo job3
+       displayName: 'Run a one-line script'    
+
 
 # In Azure, an agent typically refers to software or a service that performs tasks on behalf of users or other 
 # software components within the Azure ecosystem. These agents can perform a variety of functions, such as 
