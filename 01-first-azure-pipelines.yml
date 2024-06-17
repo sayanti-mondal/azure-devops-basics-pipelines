@@ -3,13 +3,16 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-trigger:
+# How is the pipeline getting triggered - 
+# manually(when we click on run pipeline) or 
+# automatically(when a change in the github code would trigger the pipeline)
+trigger: # when do u want to run the pipeline
 - main
 
-pool:
+pool: # the agent running the CI/CD pipeline. where do u want to run the pipeline
   vmImage: ubuntu-latest
 
-steps:
+steps: # task (steps or tasks are bottom most level in the hierarchy of the things you can do in a Azure Pipeline.)
 - script: echo Hello, world, changed!
   displayName: 'Run a one-line script'
 
@@ -17,3 +20,11 @@ steps:
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
+
+# In Azure, an agent typically refers to software or a service that performs tasks on behalf of users or other 
+# software components within the Azure ecosystem. These agents can perform a variety of functions, such as 
+# monitoring, data collection, automation, or management tasks.
+
+# For example, in Azure DevOps, there are deployment agents that execute deployment tasks on target machines,
+# allowing continuous integration and continuous deployment (CI/CD) pipelines to automate software delivery 
+#processes.
