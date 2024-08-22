@@ -1,0 +1,70 @@
+
+trigger:
+- main
+
+resources:
+- repo: self
+
+variables:
+  tag: 26 #'$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    # - task: Docker@2
+    #   displayName: Build an image
+    #   inputs:
+    #     command: build
+    #     dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+    #     tags: |
+    #       $(tag)
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: '$(System.DefaultWorkingDirectory)'
+          Contents: '**/*.yaml'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+          
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'manifests'
+          publishLocation: 'Container'
+#Build stage
+# - Build Docker image
+# - push the docker image to docker registry ==> suppose the tag is 100
+# - copy files/articats to staging Directory
+# - publish the artifacts(deployment.yaml) to the build pipeline so that it can be available to the deployment stage
+
+- stage: Deploy
+  displayName: Deploy image
+  jobs:
+  - job: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'manifests'
+          itemPattern: '**/*.yaml'
+          targetPath: '$(System.ArtifactsDirectory)'
+          
+      - task: KubernetesManifest@1
+        inputs:
+          action: 'deploy'
+          connectionType: 'kubernetesServiceConnection'
+          kubernetesServiceConnection: 'aws-kubernetes-cluster-service-connection'
+          namespace: 'default'
+          manifests: '$(System.ArtifactsDirectory)/configuration/kubernetes/deployment.yaml'
+          containers: sayanti090/currency-exchange-devops:$(tag)
+# Deploy stage
+# - download the artifacts
+#-pull image:100 => deploy to k8s
+# - do apply => kubectl apply -f deployment.yaml
