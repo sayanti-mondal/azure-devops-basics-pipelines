@@ -1,3 +1,10 @@
+# aws --version
+# aws eks --region us-east-1 update-kubeconfig --name in28minutes-cluster
+# Uses default VPC and Subnet. Create Your Own VPC and Private Subnets for Prod Usage.
+# terraform-backend-state-in28minutes-123
+# AKIA4AHVNOD7OOO6T4KI
+
+
 terraform {
   backend "s3" {
     bucket = "aws-backend-state-sayanti-234" # Will be overridden from build
@@ -7,57 +14,73 @@ terraform {
 }
 
 resource "aws_default_vpc" "default" {
+
 }
 
-data "aws_subnet" "subnet1" {
-  vpc_id = aws_default_vpc.default.id
+### Uncomment this section after cluster creation line numbers 25 to 31 ###
+data "aws_eks_cluster" "example" {
+   name = "in28minutes-cluster"
+ }
 
-  filter {
-    name   = "availability-zone"
-    values = ["us-east-1a"]  # First Availability Zone
-  }
+data "aws_eks_cluster_auth" "example" {
+  name = "in28minutes-cluster"
 }
-
-data "aws_subnet" "subnet2" {
-  vpc_id = aws_default_vpc.default.id
-
-  filter {
-    name   = "availability-zone"
-    values = ["us-east-1b"]  # Second Availability Zone
-  }
-}
+### Uncomment this section after cluster creation ###
 
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
-  version                = "~> 2.12"
+### Uncomment this section after cluster creation line numbers 36 to 38###
+  host                   = data.aws_eks_cluster.example.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.example.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.example.token
+### Uncomment this section after cluster creation ###
 }
+
 
 module "in28minutes-cluster" {
-  source          = "terraform-aws-modules/eks/aws"
-  version         = "17.10.0"
+  source  = "terraform-aws-modules/eks/aws"
+  version = "19.15.3"
+
   cluster_name    = "in28minutes-cluster"
-  cluster_version = "1.25"
-  subnets         = [data.aws_subnet.subnet1.id, data.aws_subnet.subnet2.id]  # Subnets in different AZs
+  cluster_version = "1.29"
+
+  subnet_ids         = ["subnet-042bf40cc4f808a8b", "subnet-0feed67b731749984", "subnet-086851acc089e7d67"] #CHANGE # Donot choose subnet from us-east-1e
+  #subnets = data.aws_subnet_ids.subnets.ids
   vpc_id          = aws_default_vpc.default.id
+  #vpc_id         = "vpc-1234556abcdef"
 
-  worker_groups = [
-    {
-      instance_type = "t2.micro"
-      asg_max_size  = 3
+  //Newly added entry to allow connection to the api server
+  //Without this change error in step 163 in course will not go away
+  cluster_endpoint_public_access  = true
+
+  eks_managed_node_group_defaults = {
+    ami_type = "AL2_x86_64"
+
+  }
+
+  eks_managed_node_groups = {
+    one = {
+      name = "node-group-1"
+
+      instance_types = ["t3.small"]
+
+      min_size     = 1
+      max_size     = 3
+      desired_size = 2
     }
-  ]
-}
 
-data "aws_eks_cluster" "cluster" {
-  name = module.in28minutes-cluster.cluster_id
-}
+    two = {
+      name = "node-group-2"
 
-data "aws_eks_cluster_auth" "cluster" {
-  name = module.in28minutes-cluster.cluster_id
-}
+      instance_types = ["t3.small"]
 
+      min_size     = 1
+      max_size     = 2
+      desired_size = 1
+    }
+  }
+
+}
+### Uncomment this section after cluster creation line numbers 88 to 115###
 resource "kubernetes_cluster_role_binding" "example" {
   metadata {
     name = "fabric8-rbac"
@@ -72,9 +95,8 @@ resource "kubernetes_cluster_role_binding" "example" {
     name      = "default"
     namespace = "default"
   }
-}
+ }
 
-# Create a secret. After version 1.23 there is no default secret
 resource "kubernetes_secret" "example" {
   metadata {
     annotations = {
@@ -86,8 +108,10 @@ resource "kubernetes_secret" "example" {
 
   type                           = "kubernetes.io/service-account-token"
   wait_for_service_account_token = true
-}
+ }
+### Uncomment this section after cluster creation ###
 
+# Needed to set the default region
 provider "aws" {
   region  = "us-east-1"
 }

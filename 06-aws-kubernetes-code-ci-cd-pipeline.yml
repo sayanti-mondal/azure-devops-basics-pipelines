@@ -6,7 +6,7 @@ resources:
 - repo: self
 
 variables:
-  tag: 26 #'$(Build.BuildId)'
+  tag: '$(Build.BuildId)' #26(In the 1st step we didnt build an image, used the image tag present in docker hub)
 
 stages:
 - stage: Build
@@ -17,13 +17,15 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
-    # - task: Docker@2
-    #   displayName: Build an image
-    #   inputs:
-    #     command: build
-    #     dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
-    #     tags: |
-    #       $(tag)
+    - task: Docker@2
+        displayName: Build and Push an Image
+        inputs:
+          containerRegistry: 'sayanti-docker-hub'
+          repository: 'sayanti090/currency-exchange-devops'
+          command: 'buildAndPush'
+          Dockerfile: '**/Dockerfile'
+          tags: '$(tag)'
+
       - task: CopyFiles@2
         inputs:
           SourceFolder: '$(System.DefaultWorkingDirectory)'
