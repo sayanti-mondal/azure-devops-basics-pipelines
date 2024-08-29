@@ -27,13 +27,13 @@ resource "aws_default_vpc" "default" {
 # }
 ### Uncomment this section after cluster creation ###
 
-provider "kubernetes" {
-### Uncomment this section after cluster creation line numbers 36 to 38###
-  host                   = data.aws_eks_cluster.example.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.example.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.example.token
-### Uncomment this section after cluster creation ###
-}
+# provider "kubernetes" {
+# ### Uncomment this section after cluster creation line numbers 36 to 38###
+#   host                   = data.aws_eks_cluster.example.endpoint
+#   cluster_ca_certificate = base64decode(data.aws_eks_cluster.example.certificate_authority[0].data)
+#   token                  = data.aws_eks_cluster_auth.example.token
+# ### Uncomment this section after cluster creation ###
+# }
 
 
 module "in28minutes-cluster" {
